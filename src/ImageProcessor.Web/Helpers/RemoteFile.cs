@@ -16,6 +16,7 @@ using System.Security;
 using System.Threading.Tasks;
 using System.Web;
 using ImageProcessor.Configuration;
+using ImageProcessor.Web.Configuration;
 using ImageProcessor.Web.HttpModules;
 
 namespace ImageProcessor.Web.Helpers
@@ -136,6 +137,8 @@ namespace ImageProcessor.Web.Helpers
             HttpStatusCode statusCode = HttpStatusCode.OK;
             try
             {
+                ServicePointManager.SecurityProtocol = ImageProcessorConfiguration.Instance.TlsVersion;
+
                 response = await this.client.GetAsync(uri).ConfigureAwait(false);
                 statusCode = response.StatusCode;
                 response.EnsureSuccessStatusCode();

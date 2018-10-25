@@ -8,11 +8,11 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
-using ImageProcessor.Web.Caching;
-
 namespace ImageProcessor.Web.Configuration
 {
     using System;
+    using System.Net;
+
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Configuration;
@@ -21,6 +21,7 @@ namespace ImageProcessor.Web.Configuration
     using ImageProcessor.Configuration;
     using ImageProcessor.Web.Processors;
     using ImageProcessor.Web.Services;
+    using ImageProcessor.Web.Caching;
 
     /// <summary>
     /// Encapsulates methods to allow the retrieval of ImageProcessor settings.
@@ -151,6 +152,12 @@ namespace ImageProcessor.Web.Configuration
         /// without querystring parameters.
         /// </summary>
         public bool InterceptAllRequests => GetImageProcessingSection().InterceptAllRequests;
+
+        /// <summary>
+        /// Gets the version of TLS to use for connections
+        /// </summary>
+        //public SecurityProtocolType TlsVersion => GetImageSecuritySection().ImageServices.TlsVersion;
+        public SecurityProtocolType TlsVersion { get; private set; }
 
         /// <summary>
         /// Returns the processing instructions matching the preset defined in the configuration.
@@ -316,6 +323,12 @@ namespace ImageProcessor.Web.Configuration
 
                 this.ImageServices.Add(imageService);
             }
+
+            if (!Enum.TryParse(services.TlsVersion, out SecurityProtocolType tlsVersion))
+            {
+                tlsVersion = SecurityProtocolType.Tls;
+            }
+            this.TlsVersion = tlsVersion;
         }
 
         /// <summary>

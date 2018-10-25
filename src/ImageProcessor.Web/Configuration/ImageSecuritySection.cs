@@ -161,6 +161,18 @@ namespace ImageProcessor.Web.Configuration
             protected override string ElementName => "service";
 
             /// <summary>
+            /// Gets or sets the TLS version used for connections
+            /// </summary>
+            /// <value>The TLS version.</value>
+            [ConfigurationProperty("tlsVersion", DefaultValue = "Tls", IsRequired = false)]
+            public string TlsVersion
+            {
+                get => (string)this["tlsVersion"];
+
+                set => this["tlsVersion"] = value;
+            }
+
+            /// <summary>
             /// Gets or sets the <see cref="T:ImageProcessor.Web.Config.ImageSecuritySection.ServiceElement"/>
             /// at the specified index within the collection.
             /// </summary>

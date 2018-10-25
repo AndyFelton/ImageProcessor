@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using ImageProcessor.Web.Caching;
+using ImageProcessor.Web.Configuration;
 using ImageProcessor.Web.Helpers;
 using ImageProcessor.Web.Services;
 using Microsoft.WindowsAzure.Storage;
@@ -96,6 +98,8 @@ namespace ImageProcessor.Web.Plugins.AzureBlobCache
             string container = this.Settings.ContainsKey("Container")
                 ? this.Settings["Container"]
                 : string.Empty;
+
+            ServicePointManager.SecurityProtocol = ImageProcessorConfiguration.Instance.TlsVersion;
 
             BlobContainerPublicAccessType accessType = this.Settings.ContainsKey("AccessType")
                 ? (BlobContainerPublicAccessType)Enum.Parse(typeof(BlobContainerPublicAccessType), this.Settings["AccessType"])
