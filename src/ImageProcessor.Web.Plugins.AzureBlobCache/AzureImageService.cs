@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -84,38 +85,44 @@ namespace ImageProcessor.Web.Plugins.AzureBlobCache
         /// </returns>
         public bool IsValidRequest(string path) => ImageHelpers.IsValidImageExtension(path);
 
-        /// <summary>
-        /// Initialise the service.
-        /// </summary>
-        private void InitService()
-        {
-            // Retrieve storage accounts from connection string.
-            var cloudCachedStorageAccount = CloudStorageAccount.Parse(this.Settings["StorageAccount"]);
+		/// <summary>
+		/// Initialise the service.
+		/// </summary>
+		private void InitService()
+		{
+			// Retrieve storage accounts from connection string.
+			var cloudCachedStorageAccount = CloudStorageAccount.Parse(this.Settings["StorageAccount"]);
 
-            // Create the blob client.
-            CloudBlobClient blobClient = cloudCachedStorageAccount.CreateCloudBlobClient();
+			var securitySection = ConfigurationManager.GetSection("imageProcessor/security") as ImageSecuritySection;
+			if (!Enum.TryParse(securitySection.ImageServices.TlsVersion, out SecurityProtocolType tlsVersion))
+			{
+				tlsVersion = SecurityProtocolType.Tls;
+			}
 
-            string container = this.Settings.ContainsKey("Container")
-                ? this.Settings["Container"]
-                : string.Empty;
+			ServicePointManager.SecurityProtocol = tlsVersion;
 
-            ServicePointManager.SecurityProtocol = ImageProcessorConfiguration.Instance.TlsVersion;
+			// Create the blob client.
+			CloudBlobClient blobClient = cloudCachedStorageAccount.CreateCloudBlobClient();
 
-            BlobContainerPublicAccessType accessType = this.Settings.ContainsKey("AccessType")
-                ? (BlobContainerPublicAccessType)Enum.Parse(typeof(BlobContainerPublicAccessType), this.Settings["AccessType"])
-                : BlobContainerPublicAccessType.Blob;
+			string container = this.Settings.ContainsKey("Container")
+				? this.Settings["Container"]
+				: string.Empty;
 
-            this.blobContainer = CreateContainer(blobClient, container, accessType);
-        }
+			BlobContainerPublicAccessType accessType = this.Settings.ContainsKey("AccessType")
+				? (BlobContainerPublicAccessType)Enum.Parse(typeof(BlobContainerPublicAccessType), this.Settings["AccessType"])
+				: BlobContainerPublicAccessType.Blob;
 
-        /// <summary>
-        /// Returns the cache container, creating a new one if none exists.
-        /// </summary>
-        /// <param name="cloudBlobClient"><see cref="CloudBlobClient"/> where the container is stored.</param>
-        /// <param name="containerName">The name of the container.</param>
-        /// <param name="accessType"><see cref="BlobContainerPublicAccessType"/> indicating the access permissions.</param>
-        /// <returns>The <see cref="CloudBlobContainer"/></returns>
-        private static CloudBlobContainer CreateContainer(CloudBlobClient cloudBlobClient, string containerName, BlobContainerPublicAccessType accessType)
+			this.blobContainer = CreateContainer(blobClient, container, accessType);
+		}
+
+		/// <summary>
+		/// Returns the cache container, creating a new one if none exists.
+		/// </summary>
+		/// <param name="cloudBlobClient"><see cref="CloudBlobClient"/> where the container is stored.</param>
+		/// <param name="containerName">The name of the container.</param>
+		/// <param name="accessType"><see cref="BlobContainerPublicAccessType"/> indicating the access permissions.</param>
+		/// <returns>The <see cref="CloudBlobContainer"/></returns>
+		private static CloudBlobContainer CreateContainer(CloudBlobClient cloudBlobClient, string containerName, BlobContainerPublicAccessType accessType)
         {
             CloudBlobContainer container = cloudBlobClient.GetContainerReference(containerName);
 
